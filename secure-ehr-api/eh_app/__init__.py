@@ -5,6 +5,8 @@ from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
+from eh_app.routes.main import main_bp
+
 
 # Extensiones globales
 db = SQLAlchemy()
@@ -31,5 +33,6 @@ def create_app():
         from eh_app.routes.main import main_bp
         app.register_blueprint(auth_bp)
         app.register_blueprint(main_bp)
+        
 
     return app
