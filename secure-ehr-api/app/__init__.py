@@ -5,7 +5,8 @@ from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from .routes.main import main_bp
-from app.models.user import User
+
+
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -21,5 +22,7 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
     limiter.init_app(app)
-
+    with app.app_context():
+        from app.models.user import User
     return app
+
