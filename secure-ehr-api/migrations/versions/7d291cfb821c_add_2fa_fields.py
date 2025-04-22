@@ -1,8 +1,8 @@
-"""Add User model
+"""Add 2FA fields
 
-Revision ID: 30e5680e7713
+Revision ID: 7d291cfb821c
 Revises: 
-Create Date: 2025-04-21 19:39:50.491828
+Create Date: 2025-04-22 14:58:10.404424
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '30e5680e7713'
+revision = '7d291cfb821c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,6 +24,15 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=128), nullable=False),
     sa.Column('role', sa.String(length=20), nullable=False),
+    sa.Column('full_name', sa.Text(), nullable=False),
+    sa.Column('document_number', sa.Text(), nullable=False),
+    sa.Column('birth_date', sa.String(length=20), nullable=True),
+    sa.Column('phone', sa.String(length=20), nullable=True),
+    sa.Column('address', sa.Text(), nullable=True),
+    sa.Column('eps', sa.String(length=50), nullable=True),
+    sa.Column('blood_type', sa.String(length=5), nullable=True),
+    sa.Column('allergies', sa.Text(), nullable=True),
+    sa.Column('gender', sa.String(length=10), nullable=True),
     sa.Column('two_factor_enabled', sa.Boolean(), nullable=True),
     sa.Column('two_factor_code', sa.String(length=6), nullable=True),
     sa.PrimaryKeyConstraint('id'),

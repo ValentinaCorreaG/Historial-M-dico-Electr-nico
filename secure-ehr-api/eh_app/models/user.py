@@ -1,11 +1,10 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from eh_app.utils.security import encrypt_data, decrypt_data
-from flask_sqlalchemy import SQLAlchemy
 from eh_app import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)  # nombre visible
+    username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), default='paciente', nullable=False)
@@ -20,6 +19,10 @@ class User(db.Model):
     blood_type = db.Column(db.String(5))
     allergies = db.Column(db.Text)
     gender = db.Column(db.String(10))
+
+    # Campos para 2FA
+    two_factor_enabled = db.Column(db.Boolean, default=True)
+    two_factor_code = db.Column(db.String(6), nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
