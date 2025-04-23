@@ -14,3 +14,22 @@ def dashboard():
         return redirect("/login")
 
     return render_template("dashboard.html")
+
+@main_bp.route("/profile")
+def perfil():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    return render_template("profile.html")
+
+@main_bp.route("/schedule")
+def agenda():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    return render_template("schedule.html")
+
+@main_bp.route("/logout")
+def logout():
+    session.clear()  # Borra todos los datos de sesión
+    return redirect("/")  # Redirige a la página de bienvenida o login
