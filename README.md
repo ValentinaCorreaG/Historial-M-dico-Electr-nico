@@ -1,48 +1,42 @@
-# 🏥 API Segura para Gestión de Historial Médico Electrónico (EHR)
+# 🏥 EHR Seguro - API y Frontend Web
 
-Una API RESTful segura para la gestión de historiales médicos electrónicos, diseñada con un enfoque en la **seguridad**, la **privacidad del paciente** y el **cumplimiento de normativas como HIPAA**. Soporta distintos roles de usuario (pacientes, médicos, administradores) y permite controlar el acceso a la información médica de forma granular.
-
----
-
-## 🚀 Características
-
-- 🔐 **Autenticación y Autorización**
-  - Implementación de OAuth2 con JWT
-  - Control de roles: Pacientes, Médicos y Administradores
-
-- 🧩 **Sistema de Permisos Granulares**
-  - Los médicos solo acceden a los registros autorizados
-  - Administradores con privilegios extendidos
-
-- 🔒 **Cifrado de Datos**
-  - Cifrado simétrico con AES-256 o Fernet para proteger información sensible
-
-- 📜 **Registro de Accesos (Auditoría)**
-  - Logs detallados de accesos y modificaciones a datos
-
-- 🛡️ **Protección contra Ataques**
-  - Rate limiting
-  - Validación y sanitización de inputs
-  - Prevención de ataques comunes como inyección SQL, XSS, etc.
+Una plataforma web segura desarrollada con **Flask** para gestionar **historias clínicas electrónicas** (EHR), diseñada bajo principios de seguridad, privacidad y cumplimiento de normativas como HIPAA.
 
 ---
 
-## 🧰 Tecnologías Utilizadas
+## 🚀 Características principales
 
-- Python 3.11+
-- [FastAPI](https://fastapi.tiangolo.com/) 
-- PostgreSQL 
-- OAuth2 + JWT (via `fastapi.security`)
-- `cryptography` (AES / Fernet)
-- `uvicorn` para servidor ASGI
-- `slowapi` para rate limiting (opcional)
-- `loguru` para logging detallado
+### 🔐 Autenticación y Autorización
+- Inicio de sesión con autenticación basada en JWT
+- Segundo factor de autenticación (2FA) con código enviado por email
+- Roles soportados: paciente, médico y administrador
+
+### 📋 Registro de Usuarios
+- Formulario amigable y validado con Bootstrap
+- Almacenamiento seguro (hash de contraseñas y cifrado de campos sensibles con Fernet AES-256)
+- Campos incluidos: nombre, documento, nacimiento, EPS, tipo de sangre, alergias, etc.
+
+### 📦 Cifrado de datos sensibles
+- Uso de `cryptography.fernet` para encriptar:
+  - Nombre completo
+  - Documento
+  - Dirección y alergias (si existen)
+
+### 🛡️ Seguridad
+- Rate limiting con Flask-Limiter (opcional)
+- Validación de inputs
+- Separación por Blueprints
+- Sistema de logs (implementación sugerida con Loguru)
+
+### 📊 Dashboard dinámico
+- Panel estilo médico con Bootstrap 5
+- Navegación lateral, tarjetas resumen, y bloque para historia clínica
 
 ---
+## ✅ Pendientes y mejoras sugeridas
 
-## ⚙️ Instalación
+- Asociar usuarios con historias clínicas dinámicas
+- Panel para médicos con control de accesos granular
+- Exportar PDFs de historias clínicas
+- Dashboard por rol (condicional en sesión)
 
-1. **Clona el repositorio**
-   ```bash
-   git clone https://github.com/tu-usuario/secure-ehr-api.git
-   cd secure-ehr-api
