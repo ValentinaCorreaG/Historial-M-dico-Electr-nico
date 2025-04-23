@@ -6,6 +6,8 @@ from eh_app.utils.email import enviar_codigo
 
 auth_bp = Blueprint('auth', __name__)
 
+
+
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -125,3 +127,33 @@ def verify_2fa():
         return render_template("verify_2fa.html", error="Código inválido")
 
     return render_template("verify_2fa.html")
+
+@auth_bp.route('/records', methods=['GET'])
+def records():
+    # Verificar si el usuario está logueado
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    # Aquí puedes agregar lógica para obtener los registros médicos
+    # Por ejemplo:
+    # records = MedicalRecord.query.filter_by(user_id=session['user_id']).all()
+    
+    # Renderizar la plantilla de registros
+    return render_template("records.html") 
+
+@auth_bp.route('/records/new', methods=['GET'])
+def new_record():
+    # Obtener lista de pacientes para el dropdown
+    return render_template('new_record.html')
+@auth_bp.route('/patients', methods=['GET'])
+def patients():
+    # Verificar si el usuario está logueado
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    # Aquí puedes agregar lógica para obtener los pacientes
+    return render_template("patients.html")
+
+@auth_bp.route('/patients/new', methods=['GET'])
+def new_patient(): 
+    # Aquí puedes agregar lógica para crear un nuevo paciente
+    return render_template("new_patient.html")
