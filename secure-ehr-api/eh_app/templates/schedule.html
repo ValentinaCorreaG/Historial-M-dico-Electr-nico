@@ -74,21 +74,31 @@
                 </tr>
               </thead>
               <tbody>
+                {% for appt in appointments %}
                 <tr>
-                  <td>25/04/2025</td>
-                  <td>10:00</td>
-                  <td>María López</td>
-                  <td>Consulta General</td>
+                  <td>{{ appt.date.strftime('%d/%m/%Y') }}</td>
+                  <td>{{ appt.time.strftime('%H:%M') }}</td>
                   <td>
-                    <button class="btn btn-sm btn-outline-secondary">
+                    {{ appt.patient.full_name if user.role != 'paciente' else
+                    appt.doctor.full_name }}
+                  </td>
+                  <td>{{ appt.reason }}</td>
+                  <td>
+                    <a
+                      href="/schedule/{{ appt.id }}"
+                      class="btn btn-sm btn-outline-secondary"
+                    >
                       <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary">
+                    </a>
+                    <a
+                      href="/schedule/{{ appt.id }}/edit"
+                      class="btn btn-sm btn-outline-primary"
+                    >
                       <i class="bi bi-pencil"></i>
-                    </button>
+                    </a>
                   </td>
                 </tr>
-                <!-- Más citas pueden ser renderizadas aquí -->
+                {% endfor %}
               </tbody>
             </table>
             <div class="d-flex justify-content-end">

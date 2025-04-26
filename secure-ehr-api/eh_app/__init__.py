@@ -31,6 +31,7 @@ def create_app():
         from eh_app.models.user import User  # Garantiza que el modelo se registre
         from eh_app.routes.auth import auth_bp
         from eh_app.routes.main import main_bp
+        from eh_app.models.appointment import Appointment  # Garantiza que el modelo se registre 
         app.register_blueprint(auth_bp)
         app.register_blueprint(main_bp)
         

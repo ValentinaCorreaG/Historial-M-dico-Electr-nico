@@ -44,4 +44,4 @@ class User(db.Model):
         if self.address:
             self.address = decrypt_data(self.address)
         if self.allergies:
-            self.allergies = decrypt_data(self.allergies)
+            self.allergies = decrypt_data( self.allergies)
