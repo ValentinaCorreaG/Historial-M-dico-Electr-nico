@@ -3,6 +3,7 @@ from eh_app.models.user import User
 from eh_app import db
 from sqlalchemy.exc import IntegrityError
 from eh_app.utils.email import enviar_codigo
+from eh_app.utils.security import decrypt_data
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -157,3 +158,159 @@ def patients():
 def new_patient(): 
     # Aquí puedes agregar lógica para crear un nuevo paciente
     return render_template("new_patient.html")
+
+
+@auth_bp.route("/profile")
+def profile():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user = User.query.get(session["user_id"])
+    if user is None:
+        return redirect("/login")
+
+    # Desencriptar
+    user.decrypt_fields()
+
+    # Extraer campos desencriptados (evita re-acceso desde Jinja)
+    user_data = {
+        "username": user.username,
+        "email": user.email,
+        "full_name": user.full_name,
+        "document_number": user.document_number,
+        "birth_date": user.birth_date,
+        "phone": user.phone,
+        "address": user.address,
+        "eps": user.eps,
+        "blood_type": user.blood_type,
+        "allergies": user.allergies,
+        "gender": user.gender,
+        "role": user.role,
+        "two_factor_enabled": user.two_factor_enabled
+    }
+
+    return render_template("profile.html", user=user_data)
+
+
+# eh_app/routes/main.py
+
+@auth_bp.route("/schedule")
+def schedule_page():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    from eh_app.models.user import User
+    from eh_app.models.appointment import Appointment
+
+    user = User.query.get(session["user_id"])
+
+    if user.role == "doctor":
+        appointments = Appointment.query.filter_by(doctor_id=user.id).all()
+    elif user.role == "paciente":
+        appointments = Appointment.query.filter_by(patient_id=user.id).all()
+    else:  # admin
+        appointments = Appointment.query.all()
+
+    # Desencriptar pacientes y doctores para cada cita
+    for appt in appointments:
+        try:
+            if appt.patient:
+                appt.patient.decrypt_fields()
+            if appt.doctor:
+                appt.doctor.decrypt_fields()
+        except Exception as e:
+            print("[ERROR] Fallo al desencriptar:", e)
+
+    return render_template("schedule.html", user=user, appointments=appointments)
+
+
+
+@auth_bp.route("/profile/edit", methods=["GET", "POST"])
+def edit_profile():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    from eh_app.models.user import User
+
+    user = User.query.get(session["user_id"])
+    if user is None:
+        return redirect("/login")
+
+    if request.method == "POST":
+        # Actualizar datos con lo que el usuario envía en el formulario
+        user.full_name = request.form["full_name"]
+        user.document_number = request.form["document_number"]
+        user.address = request.form["address"]
+        user.phone = request.form["phone"]
+        user.email = request.form["email"]
+        user.eps = request.form["eps"]
+        user.birth_date = request.form["birth_date"]
+
+        # Encriptar los campos antes de guardar (si aplica)
+        user.encrypt_fields()
+
+        # Guardar en la base de datos
+        from eh_app import db
+        db.session.commit()
+
+        return redirect("/profile")
+
+    # GET: mostrar formulario con los datos actuales
+    user.decrypt_fields()
+    return render_template("edit_profile.html", user=user)
+
+
+import datetime
+
+@auth_bp.route('/schedule/new', methods=['GET', 'POST'])
+def new_schedule():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    from eh_app.models.user import User
+    from eh_app.models.appointment import Appointment
+
+    # Si el usuario es un administrador o médico, obtener la lista de pacientes y médicos
+    patients = User.query.filter_by(role='paciente').all()
+    doctors = User.query.filter_by(role='doctor').all()
+
+    # Desencriptar los datos sensibles de pacientes y médicos
+    for patient in patients:
+        try:
+            patient.decrypt_fields()  # Desencriptar campos del paciente
+        except Exception as e:
+            pass  # Si ocurre un error, los datos se dejan sin desencriptar
+
+    for doctor in doctors:
+        try:
+            doctor.decrypt_fields()  # Desencriptar campos del médico
+        except Exception as e:
+            pass  # Si ocurre un error, los datos se dejan sin desencriptar
+
+    if request.method == 'POST':
+        patient_id = request.form['patient_id']
+        doctor_id = request.form['doctor_id']
+        date_str = request.form['date']
+        time_str = request.form['time']
+        reason = request.form['reason']
+
+        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        time = datetime.datetime.strptime(time_str, '%H:%M').time()
+
+    # Crear nueva cita
+        new_appointment = Appointment(
+            patient_id=patient_id,
+            doctor_id=doctor_id,
+            date=date,
+            time=time,
+            reason=reason
+        )
+        db.session.add(new_appointment)
+        db.session.commit()
+        
+        return redirect('/schedule')
+
+
+    return render_template('schedule_new.html', patients=patients, doctors=doctors)
+
+
