@@ -5,6 +5,10 @@ from eh_app import db
 from sqlalchemy.exc import IntegrityError
 from eh_app.utils.email import enviar_codigo
 from eh_app.utils.security import decrypt_data
+from flask import send_file
+from eh_app.utils.pdf_generator import crear_pdf_historia_clinica
+from PyPDF2 import PdfReader, PdfWriter
+import io
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -317,6 +321,31 @@ def edit_profile():
     # GET: mostrar formulario con los datos actuales
     user.decrypt_fields()
     return render_template("edit_profile.html", user=user)
+from flask import send_file
+from eh_app.models.historia_clinica import HistoriaClinica
+from eh_app.models.paciente import Paciente
+from eh_app.utils.pdf_generator import crear_pdf_historia_clinica
+import io
+from flask import send_file
+import io
+from eh_app.utils.pdf_generator import crear_pdf_historia_clinica
+
+@auth_bp.route('/patients/<int:patient_id>/historial/download')
+def download_historial_pdf(patient_id):
+    paciente = Paciente.query.get_or_404(patient_id)
+    historias = HistoriaClinica.query.filter_by(patient_id=patient_id).order_by(HistoriaClinica.record_date).all()
+    
+    # Generar el PDF
+    pdf_buffer = crear_pdf_historia_clinica(paciente, historias)
+
+    # Envolver el PDF generado en un nuevo buffer para asegurar compatibilidad
+    output_buffer = io.BytesIO()
+    output_buffer.write(pdf_buffer.getvalue())  # ✅ corregido aquí
+    output_buffer.seek(0)
+
+    filename = f"historia_clinica_{paciente.first_name}_{paciente.last_name}.pdf"
+    return send_file(pdf_buffer, as_attachment=True, download_name="historia_clinica.pdf", mimetype='application/pdf')
+
 
 
 import datetime
@@ -410,6 +439,35 @@ def edit_historial_clinico(patient_id, historia_id):
             return f"Error al actualizar: {e}", 500
 
     return render_template('edit_historial.html', paciente=paciente, historia=historia)
+
+@auth_bp.route('/patients/<int:patient_id>/historial/download')
+def download_historia_clinica(patient_id):
+    paciente = Paciente.query.get_or_404(patient_id)
+    historias = HistoriaClinica.query.filter_by(patient_id=patient_id).order_by(HistoriaClinica.record_date.desc()).all()
+
+    pdf_buffer = crear_pdf_historia_clinica(paciente, historias)
+
+    reader = PdfReader(pdf_buffer)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        writer.add_page(page)
+
+    # Usar número de documento como contraseña
+    password = paciente.document_number
+    writer.encrypt(password)
+
+    output_buffer = io.BytesIO()
+    writer.write(output_buffer)
+    output_buffer.seek(0)
+
+    return send_file(
+        output_buffer,
+        as_attachment=True,
+        download_name=f"historia_clinica_{paciente.id}.pdf",
+        mimetype='application/pdf'
+    )
+
 
 @auth_bp.route('/patients/<int:patient_id>/historial/new', methods=['GET', 'POST'])
 def new_historial_clinico(patient_id):
