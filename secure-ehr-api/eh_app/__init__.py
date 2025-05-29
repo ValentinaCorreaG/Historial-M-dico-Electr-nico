@@ -7,6 +7,15 @@ from flask_limiter.util import get_remote_address
 from flask_mail import Mail
 from eh_app.routes.main import main_bp
 
+# eh_app/__init__.py
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10 per day", "1 per hour"]
+)
+
 
 # Extensiones globales
 db = SQLAlchemy()
@@ -34,8 +43,7 @@ def create_app():
         from eh_app.routes.main import main_bp
         from eh_app.models.paciente import Paciente
         from eh_app.models.historia_clinica import HistoriaClinica  # Aquí
-
-
+        limiter.init_app(app)
         app.register_blueprint(auth_bp)
         app.register_blueprint(main_bp)
         

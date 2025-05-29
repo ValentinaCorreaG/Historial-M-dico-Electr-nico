@@ -9,7 +9,13 @@ from flask import send_file
 from eh_app.utils.pdf_generator import crear_pdf_historia_clinica
 from PyPDF2 import PdfReader, PdfWriter
 import io
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10 per day", "1 per hour"]
+)
 auth_bp = Blueprint('auth', __name__)
 
 
@@ -78,6 +84,7 @@ from eh_app.models.user import User
 from eh_app.utils.email import enviar_codigo
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if request.method == "POST":
         email = request.form.get("email")
