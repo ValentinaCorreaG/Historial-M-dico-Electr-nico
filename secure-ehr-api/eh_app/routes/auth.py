@@ -255,39 +255,6 @@ def profile():
     return render_template("profile.html", user=user_data)
 
 
-# eh_app/routes/main.py
-
-@auth_bp.route("/schedule")
-def schedule_page():
-    if "user_id" not in session:
-        return redirect("/login")
-
-    from eh_app.models.user import User
-    from eh_app.models.appointment import Appointment
-
-    user = User.query.get(session["user_id"])
-
-    if user.role == "doctor":
-        appointments = Appointment.query.filter_by(doctor_id=user.id).all()
-    elif user.role == "paciente":
-        appointments = Appointment.query.filter_by(patient_id=user.id).all()
-    else:  # admin
-        appointments = Appointment.query.all()
-
-    # Desencriptar pacientes y doctores para cada cita
-    for appt in appointments:
-        try:
-            if appt.patient:
-                appt.patient.decrypt_fields()
-            if appt.doctor:
-                appt.doctor.decrypt_fields()
-        except Exception as e:
-            print("[ERROR] Fallo al desencriptar:", e)
-
-    return render_template("schedule.html", user=user, appointments=appointments)
-
-
-
 @auth_bp.route("/profile/edit", methods=["GET", "POST"])
 def edit_profile():
     if "user_id" not in session:
@@ -349,7 +316,6 @@ def download_historial_pdf(patient_id):
 
 
 import datetime
-
 @auth_bp.route('/schedule/new', methods=['GET', 'POST'])
 def new_schedule():
     if "user_id" not in session:
@@ -358,49 +324,108 @@ def new_schedule():
     from eh_app.models.user import User
     from eh_app.models.appointment import Appointment
 
-    # Si el usuario es un administrador o médico, obtener la lista de pacientes y médicos
+    user = User.query.get(session["user_id"])
+
     patients = User.query.filter_by(role='paciente').all()
     doctors = User.query.filter_by(role='doctor').all()
 
-    # Desencriptar los datos sensibles de pacientes y médicos
     for patient in patients:
-        try:
-            patient.decrypt_fields()  # Desencriptar campos del paciente
-        except Exception as e:
-            pass  # Si ocurre un error, los datos se dejan sin desencriptar
+        try: patient.decrypt_fields()
+        except: pass
 
     for doctor in doctors:
-        try:
-            doctor.decrypt_fields()  # Desencriptar campos del médico
-        except Exception as e:
-            pass  # Si ocurre un error, los datos se dejan sin desencriptar
+        try: doctor.decrypt_fields()
+        except: pass
 
     if request.method == 'POST':
-        patient_id = request.form['patient_id']
-        doctor_id = request.form['doctor_id']
-        date_str = request.form['date']
-        time_str = request.form['time']
-        reason = request.form['reason']
-
-        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        time = datetime.datetime.strptime(time_str, '%H:%M').time()
-
-    # Crear nueva cita
-        new_appointment = Appointment(
-            patient_id=patient_id,
-            doctor_id=doctor_id,
-            date=date,
-            time=time,
-            reason=reason
+        new_appt = Appointment(
+            patient_id=request.form['patient_id'],
+            doctor_id=user.id if user.role == 'doctor' else request.form['doctor_name'],
+            date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
+            time=datetime.strptime(request.form['time'], '%H:%M').time(),
+            reason=request.form['reason']
         )
-        db.session.add(new_appointment)
+        db.session.add(new_appt)
         db.session.commit()
-        
         return redirect('/schedule')
 
+    return render_template('schedule_new.html', patients=patients, doctors=doctors, user=user)
 
-    return render_template('schedule_new.html', patients=patients, doctors=doctors)
+@auth_bp.route("/schedule/<int:appointment_id>")
+def view_schedule(appointment_id):
+    from eh_app.models.appointment import Appointment
+    from eh_app.models.user import User
 
+    if "user_id" not in session:
+        return redirect("/login")
+
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Desencriptar pacientes y doctores
+    if appointment.patient:
+        try:
+            appointment.patient.decrypt_fields()
+        except Exception:
+            pass
+    if appointment.doctor:
+        try:
+            appointment.doctor.decrypt_fields()
+        except Exception:
+            pass
+
+    return render_template("schedule_view.html", appointment=appointment)
+
+
+@auth_bp.route("/schedule/<int:appointment_id>/edit", methods=["GET", "POST"])
+def edit_schedule(appointment_id):
+    from eh_app.models.appointment import Appointment
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    appt = Appointment.query.get_or_404(appointment_id)
+
+    if request.method == "POST":
+        try:
+            date_str = request.form["date"]
+            time_str = request.form["time"]
+            reason = request.form["reason"]
+
+            appt.date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            appt.time = datetime.strptime(time_str, "%H:%M").time()
+            appt.reason = reason
+
+            db.session.commit()
+            return redirect("/schedule")
+        except Exception as e:
+            db.session.rollback()
+            return f"Error al actualizar la cita: {e}", 500
+
+    return render_template("schedule_edit.html", appt=appt)
+
+
+@auth_bp.route("/schedule")
+def schedule_page():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user = User.query.get(session["user_id"])
+    from eh_app.models.appointment import Appointment
+
+    if user.role == "doctor":
+        appointments = Appointment.query.filter_by(doctor_id=user.id).all()
+    elif user.role == "paciente":
+        appointments = Appointment.query.filter_by(patient_id=user.id).all()
+    else:
+        appointments = Appointment.query.all()
+
+    for appt in appointments:
+        try:
+            if appt.patient: appt.patient.decrypt_fields()
+            if appt.doctor: appt.doctor.decrypt_fields()
+        except: pass
+
+    return render_template("schedule.html", user=user, appointments=appointments)
 
 from eh_app.models.historia_clinica import HistoriaClinica
 from datetime import datetime
