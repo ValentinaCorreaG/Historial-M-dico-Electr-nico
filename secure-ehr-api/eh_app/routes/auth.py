@@ -373,3 +373,71 @@ def new_schedule():
     return render_template('schedule_new.html', patients=patients, doctors=doctors)
 
 
+from eh_app.models.historia_clinica import HistoriaClinica
+from datetime import datetime
+import json
+
+@auth_bp.route('/patients/<int:patient_id>/historial')
+def view_historial_clinico(patient_id):
+    paciente = Paciente.query.get_or_404(patient_id)
+    historias = HistoriaClinica.query.filter_by(patient_id=patient_id).order_by(HistoriaClinica.record_date.desc()).all()
+    return render_template('records.html', paciente=paciente, historias=historias)
+
+@auth_bp.route('/patients/<int:patient_id>/historial/<int:historia_id>/edit', methods=['GET', 'POST'])
+def edit_historial_clinico(patient_id, historia_id):
+    paciente = Paciente.query.get_or_404(patient_id)
+    historia = HistoriaClinica.query.get_or_404(historia_id)
+
+    if request.method == 'POST':
+        try:
+            data = request.form
+            historia.record_date = datetime.strptime(data.get('record_date'), '%Y-%m-%d')
+            historia.reason = data.get('reason')
+            historia.blood_pressure = data.get('blood_pressure')
+            historia.heart_rate = data.get('heart_rate')
+            historia.temperature = data.get('temperature')
+            historia.oxygen_saturation = data.get('oxygen_saturation')
+            historia.diagnosis = data.get('diagnosis')
+            historia.diagnosis_details = data.get('diagnosis_details')
+            historia.treatment = data.get('treatment')
+            historia.medications = json.loads(data.get('medications_json') or '[]')
+            historia.observations = data.get('observations')
+
+            db.session.commit()
+            return redirect(url_for('auth.view_historial_clinico', patient_id=patient_id))
+        except Exception as e:
+            db.session.rollback()
+            return f"Error al actualizar: {e}", 500
+
+    return render_template('edit_historial.html', paciente=paciente, historia=historia)
+
+@auth_bp.route('/patients/<int:patient_id>/historial/new', methods=['GET', 'POST'])
+def new_historial_clinico(patient_id):
+    paciente = Paciente.query.get_or_404(patient_id)
+
+    if request.method == 'POST':
+        data = request.form
+
+        try:
+            nueva_historia = HistoriaClinica(
+                patient_id=patient_id,
+                record_date=datetime.strptime(data.get('record_date'), '%Y-%m-%d'),
+                reason=data.get('reason'),
+                blood_pressure=data.get('blood_pressure'),
+                heart_rate=data.get('heart_rate'),
+                temperature=data.get('temperature'),
+                oxygen_saturation=data.get('oxygen_saturation'),
+                diagnosis=data.get('diagnosis'),
+                diagnosis_details=data.get('diagnosis_details'),
+                treatment=data.get('treatment'),
+                medications=json.loads(data.get('medications_json') or '[]'),
+                observations=data.get('observations')
+            )
+            db.session.add(nueva_historia)
+            db.session.commit()
+            return redirect(url_for('auth.view_historial_clinico', patient_id=patient_id))
+        except Exception as e:
+            db.session.rollback()
+            return f"Error: {e}", 500
+
+    return render_template('new_historial.html', paciente=paciente)
