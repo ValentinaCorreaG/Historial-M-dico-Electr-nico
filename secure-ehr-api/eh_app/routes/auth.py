@@ -152,13 +152,26 @@ def records():
 def new_record():
     # Obtener lista de pacientes para el dropdown
     return render_template('new_record.html')
-@auth_bp.route('/patients', methods=['GET','POST'])
+@auth_bp.route('/patients', methods=['GET'])
 def patients():
     from eh_app.models.paciente import Paciente
+
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    pacientes = Paciente.query.all()
-    return render_template('patients.html', pacientes=pacientes)
+
+    search_query = request.args.get('q', '').lower()
+
+    if search_query:
+        pacientes = Paciente.query.filter(
+            (Paciente.document_number.ilike(f'%{search_query}%')) |
+            (Paciente.first_name.ilike(f'%{search_query}%')) |
+            (Paciente.last_name.ilike(f'%{search_query}%'))
+        ).all()
+    else:
+        pacientes = Paciente.query.all()
+
+    return render_template('patients.html', pacientes=pacientes, search_query=search_query)
+
 
 @auth_bp.route('/patients/new', methods=['GET','POST'])
 def new_patient(): 
