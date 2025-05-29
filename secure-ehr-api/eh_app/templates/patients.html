@@ -148,21 +148,49 @@
             <div class="card-header bg-white">
               <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Listado de Pacientes</h5>
-                <span class="badge bg-primary">Total: 0</span>
+                <span class="badge bg-primary">Total: {{ pacientes|length }}</span>
               </div>
             </div>
 
             <div class="card-body">
-              <div class="empty-state">
-                <i class="bi bi-people"></i>
-                <h4>No hay pacientes registrados</h4>
-                <p class="mb-4">
-                  Comience agregando nuevos pacientes al sistema
-                </p>
-                <a href="/patients/new" class="btn btn-primary">
-                  <i class="bi bi-plus-circle me-1"></i> Crear primer paciente
-                </a>
-              </div>
+              {% if pacientes %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                  {% for paciente in pacientes %}
+                  <div class="col">
+                    <a href="/patients/{{ paciente.id }}" style="text-decoration: none; color: inherit;">
+                      <div class="card patient-card shadow-sm">
+                        <div class="card-body">
+                          <h5 class="card-title">
+                            {{ paciente.first_name }} {{ paciente.last_name }}
+                          </h5>
+                          <p class="card-text mb-1">
+                            <strong>Documento:</strong> {{ paciente.document_type }} {{ paciente.document_number }}
+                          </p>
+                          <p class="card-text mb-1">
+                            <strong>Teléfono:</strong> {{ paciente.phone }}
+                          </p>
+                          <p class="card-text mb-1">
+                            <strong>Ciudad:</strong> {{ paciente.city }}
+                          </p>
+                          <span class="badge bg-success badge-status">Activo</span>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="empty-state">
+                  <i class="bi bi-people"></i>
+                  <h4>No hay pacientes registrados</h4>
+                  <p class="mb-4">
+                    Comience agregando nuevos pacientes al sistema
+                  </p>
+                  <a href="/patients/new" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Crear primer paciente
+                  </a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -170,14 +198,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Este espacio es para la futura implementación de la carga de pacientes
-      document.addEventListener("DOMContentLoaded", function () {
-        // Aquí irá el código para cargar pacientes desde tu API
-        console.log(
-          "Página de pacientes cargada - listo para conectar con backend"
-        );
-      });
-    </script>
   </body>
 </html>

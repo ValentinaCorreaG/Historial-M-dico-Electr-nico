@@ -92,12 +92,9 @@
           <!-- Summary Cards -->
           <div class="row g-4 mb-4">
             <div class="col-md-4">
-              <div
-                class="card-summary text-center"
-                onclick="window.location='/patients'"
-              >
+              <div class="card-summary text-center" onclick="window.location='/patients'">
                 <i class="bi bi-person-fill fs-1 text-primary"></i>
-                <h4 class="my-2 empty-data">--</h4>
+                <h4 class="my-2">{{ total_pacientes }}</h4>
                 <p class="text-muted">Pacientes</p>
               </div>
             </div>
@@ -107,7 +104,7 @@
                 onclick="window.location='/records'"
               >
                 <i class="bi bi-file-earmark-medical fs-1 text-success"></i>
-                <h4 class="my-2 empty-data">--</h4>
+                <h4 class="my-2 empty-data"></h4>
                 <p class="text-muted">Historias Clínicas</p>
               </div>
             </div>
@@ -117,7 +114,7 @@
                 onclick="window.location='/schedule'"
               >
                 <i class="bi bi-calendar-event fs-1 text-danger"></i>
-                <h4 class="my-2 empty-data">--</h4>
+                <h4 class="my-2 empty-data"></h4>
                 <p class="text-muted">Citas próximas</p>
               </div>
             </div>

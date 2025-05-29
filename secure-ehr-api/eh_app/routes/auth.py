@@ -1,5 +1,6 @@
 from flask import Blueprint, request, render_template, redirect, url_for
 from eh_app.models.user import User
+from eh_app.models.paciente import Paciente
 from eh_app import db
 from sqlalchemy.exc import IntegrityError
 from eh_app.utils.email import enviar_codigo
@@ -129,6 +130,11 @@ def verify_2fa():
 
     return render_template("verify_2fa.html")
 
+@auth_bp.route('/dashboard')
+def dashboard():
+    total_pacientes = Paciente.query.count()
+    return render_template('dashboard.html', total_pacientes=total_pacientes)
+
 @auth_bp.route('/records', methods=['GET'])
 def records():
     # Verificar si el usuario está logueado
@@ -146,18 +152,58 @@ def records():
 def new_record():
     # Obtener lista de pacientes para el dropdown
     return render_template('new_record.html')
-@auth_bp.route('/patients', methods=['GET'])
+@auth_bp.route('/patients', methods=['GET','POST'])
 def patients():
-    # Verificar si el usuario está logueado
+    from eh_app.models.paciente import Paciente
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    # Aquí puedes agregar lógica para obtener los pacientes
-    return render_template("patients.html")
+    pacientes = Paciente.query.all()
+    return render_template('patients.html', pacientes=pacientes)
 
-@auth_bp.route('/patients/new', methods=['GET'])
+@auth_bp.route('/patients/new', methods=['GET','POST'])
 def new_patient(): 
+    from eh_app.models.paciente import Paciente
+    
+
+    if "user_id" not in session:
+        return redirect("/login")
+    if request.method == "POST":
+            
+        paciente = Paciente(
+        first_name=request.form['first_name'],
+        last_name=request.form['last_name'],
+        document_type=request.form['document_type'],
+        document_number=request.form['document_number'],
+        birth_date=request.form['birth_date'],
+        gender=request.form['gender'],
+        email=request.form.get('email', ''),
+        phone=request.form['phone'],
+        address=request.form.get('address', ''),
+        city=request.form.get('city', ''),
+        blood_type=request.form.get('blood_type', ''),
+        allergies=request.form.get('allergies', ''),
+        medical_history=request.form.get('medical_history', ''),
+        insurance=request.form.get('insurance', ''),
+        occupation=request.form.get('occupation', ''),
+        referred_by=request.form.get('referred_by', ''),
+        notes=request.form.get('notes', '')
+        )
+
+        db.session.add(paciente)
+        db.session.commit()
+
+        return redirect('/patients')
     # Aquí puedes agregar lógica para crear un nuevo paciente
     return render_template("new_patient.html")
+
+@auth_bp.route('/patients/<int:paciente_id>', methods=['GET'])
+def patient_detail(paciente_id):
+    from eh_app.models.paciente import Paciente  # Asegúrate de que el modelo Paciente esté definido correctamente.
+    
+    # Obtener el paciente o retornar un error 404 si no se encuentra.
+    paciente = Paciente.query.get_or_404(paciente_id)
+    
+    return render_template('patient.html', paciente=paciente)
 
 
 @auth_bp.route("/profile")
