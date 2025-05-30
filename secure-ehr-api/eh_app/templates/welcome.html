@@ -1,10 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Bienvenido</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido | Sistema EHR</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --light: #ffffff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .welcome-container {
+            background: var(--light);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .hospital-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin: 0 0 1rem 0;
+            font-size: 2.2rem;
+        }
+        
+        p.subtitle {
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .login-btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+        
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+    </style>
 </head>
 <body>
-    <h1>🏥 Bienvenido al sistema EHR</h1>
-    <p><a href="/login">Ir al login</a></p>
+    <div class="welcome-container">
+        <div class="hospital-icon">🏥</div>
+        <h1>Bienvenido al Sistema EHR</h1>
+        <p class="subtitle">Gestión médica segura y eficiente para profesionales de la salud</p>
+        <a href="/login" class="login-btn">Acceder al Sistema</a>
+        
+        <footer>
+            <p>Sistema de Registros Electrónicos de Salud | v2.0</p>
+        </footer>
+    </div>
 </body>
 </html>

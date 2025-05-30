@@ -39,9 +39,24 @@ class User(db.Model):
             self.allergies = encrypt_data(self.allergies)
 
     def decrypt_fields(self):
-        self.full_name = decrypt_data(self.full_name)
-        self.document_number = decrypt_data(self.document_number)
+        try:
+            self.full_name = decrypt_data(self.full_name) if self.full_name else None
+        except:
+            pass  # Mantener el valor original si no se puede desencriptar
+        
+        try:
+            self.document_number = decrypt_data(self.document_number) if self.document_number else None
+        except:
+            pass
+        
         if self.address:
-            self.address = decrypt_data(self.address)
+            try:
+                self.address = decrypt_data(self.address)
+            except:
+                pass
+        
         if self.allergies:
-            self.allergies = decrypt_data(self.allergies)
+            try:
+                self.allergies = decrypt_data(self.allergies)
+            except:
+                pass
