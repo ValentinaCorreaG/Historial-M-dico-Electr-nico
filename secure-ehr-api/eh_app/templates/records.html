@@ -1,53 +1,86 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-journal-medical me-2"></i> Historial Clínico de {{ paciente.first_name }} {{ paciente.last_name }}</h2>
+    <h2>
+      <i class="bi bi-journal-medical me-2"></i> Historial Clínico de {{
+      paciente.first_name }} {{ paciente.last_name }}
+    </h2>
     <div>
-      <a href="{{ url_for('auth.new_historial_clinico', patient_id=paciente.id) }}" class="btn btn-success">
+      <a
+        href="{{ url_for('auth.new_historial_clinico', patient_id=paciente.id) }}"
+        class="btn btn-success"
+      >
         <i class="bi bi-plus-circle me-1"></i> Nueva Historia Clínica
       </a>
-      <a href="{{ url_for('auth.patients') }}" class="btn btn-outline-secondary ms-2">
+      <a
+        href="{{ url_for('auth.patients') }}"
+        class="btn btn-outline-secondary ms-2"
+      >
         <i class="bi bi-arrow-left me-1"></i> Volver a Pacientes
       </a>
-      <a href="{{ url_for('auth.download_historial_pdf', patient_id=paciente.id) }}" class="btn btn-outline-success">
+      <a
+        href="{{ url_for('auth.download_historial_pdf', patient_id=paciente.id) }}"
+        class="btn btn-outline-success"
+      >
         <i class="bi bi-download me-1"></i> Descargar Todo en PDF
       </a>
     </div>
   </div>
 
-  {% if historias %}
-    {% for historia in historias %}
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5 class="card-title">Fecha: {{ historia.record_date.strftime('%Y-%m-%d') }}</h5>
-        <p class="card-text"><strong>Motivo:</strong> {{ historia.reason }}</p>
-        <p class="card-text"><strong>Presión Arterial:</strong> {{ historia.blood_pressure }}</p>
-        <p class="card-text"><strong>Frecuencia Cardiaca:</strong> {{ historia.heart_rate }}</p>
-        <p class="card-text"><strong>Temperatura:</strong> {{ historia.temperature }}</p>
-        <p class="card-text"><strong>Saturación de Oxígeno:</strong> {{ historia.oxygen_saturation }}</p>
-        <p class="card-text"><strong>Diagnóstico:</strong> {{ historia.diagnosis }}</p>
-        <p class="card-text"><strong>Detalles:</strong> {{ historia.diagnosis_details }}</p>
-        <p class="card-text"><strong>Tratamiento:</strong> {{ historia.treatment }}</p>
-        <p class="card-text"><strong>Medicamentos:</strong> {{ historia.medications | join(', ') }}</p>
-        <p class="card-text"><strong>Observaciones:</strong> {{ historia.observations }}</p>
+  {% if historias %} {% for historia in historias %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">
+        Fecha: {{ historia.record_date.strftime('%Y-%m-%d') }}
+      </h5>
+      <p class="card-text"><strong>Motivo:</strong> {{ historia.reason }}</p>
+      <p class="card-text">
+        <strong>Presión Arterial:</strong> {{ historia.blood_pressure }}
+      </p>
+      <p class="card-text">
+        <strong>Frecuencia Cardiaca:</strong> {{ historia.heart_rate }}
+      </p>
+      <p class="card-text">
+        <strong>Temperatura:</strong> {{ historia.temperature }}
+      </p>
+      <p class="card-text">
+        <strong>Saturación de Oxígeno:</strong> {{ historia.oxygen_saturation }}
+      </p>
+      <p class="card-text">
+        <strong>Diagnóstico:</strong> {{ historia.diagnosis }}
+      </p>
+      <p class="card-text">
+        <strong>Detalles:</strong> {{ historia.diagnosis_details }}
+      </p>
+      <p class="card-text">
+        <strong>Tratamiento:</strong> {{ historia.treatment }}
+      </p>
+      <p class="card-text">
+        <strong>Medicamentos:</strong> {{ historia.medications | join(', ') }}
+      </p>
+      <p class="card-text">
+        <strong>Observaciones:</strong> {{ historia.observations }}
+      </p>
 
-        <a href="{{ url_for('auth.edit_historial_clinico', patient_id=paciente.id, historia_id=historia.id) }}"
-           class="btn btn-outline-primary mt-2">
-          <i class="bi bi-pencil-square me-1"></i> Editar
-        </a>
-        <a href="{{ url_for('auth.download_historia_clinica', patient_id=paciente.id) }}" class="btn btn-success mb-3">
-          <i class="bi bi-download"></i> Descargar PDF (con clave)
-        </a>
-
-      </div>
+      <a
+        href="{{ url_for('auth.edit_historial_clinico', patient_id=paciente.id, historia_id=historia.id) }}"
+        class="btn btn-outline-primary mt-2"
+      >
+        <i class="bi bi-pencil-square me-1"></i> Editar
+      </a>
+      <a
+        href="{{ url_for('auth.download_historia_clinica', patient_id=paciente.id) }}"
+        class="btn btn-success mb-3"
+      >
+        <i class="bi bi-download"></i> Descargar PDF (con clave)
+      </a>
     </div>
-    {% endfor %}
-  {% else %}
-    <div class="alert alert-info text-center">
-      <i class="bi bi-info-circle me-2"></i> Este paciente aún no tiene historias clínicas registradas.
-    </div>
+  </div>
+  {% endfor %} {% else %}
+  <div class="alert alert-info text-center">
+    <i class="bi bi-info-circle me-2"></i> Este paciente aún no tiene historias
+    clínicas registradas.
+  </div>
   {% endif %}
 </div>
 {% endblock %}

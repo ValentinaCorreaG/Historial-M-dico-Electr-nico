@@ -143,8 +143,28 @@ def verify_2fa():
 
 @auth_bp.route('/dashboard')
 def dashboard():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('auth_bp.login'))  # Cambia 'login' si tienes otro nombre de ruta
+
+    user = User.query.get(user_id)
+    if not user:
+        return redirect(url_for('auth_bp.login'))
+
+    if user.role == 'paciente':
+        user.decrypt_fields()  # Desencripta los campos sensibles
+        return render_template(
+            'dashboard_patient.html',
+            patient=user  # Puedes acceder como {{ patient.full_name }}, etc.
+        )
+
+    # Para admin o doctor: usamos tu lógica original
     total_pacientes = Paciente.query.count()
-    return render_template('dashboard.html', total_pacientes=total_pacientes)
+    return render_template(
+        'dashboard_admin_doctor.html',
+        total_pacientes=total_pacientes,
+        user=user  # Por si quieres mostrar el nombre del doctor/admin
+    )
 
 @auth_bp.route('/records', methods=['GET'])
 def records():
@@ -259,7 +279,11 @@ def profile():
         "two_factor_enabled": user.two_factor_enabled
     }
 
-    return render_template("profile.html", user=user_data)
+    if user.role == "paciente":
+        return render_template("profile_patient.html", user=user_data)
+
+    return render_template("profile_admin_doctor.html", user=user_data)
+
 
 
 @auth_bp.route("/profile/edit", methods=["GET", "POST"])
@@ -416,23 +440,32 @@ def schedule_page():
     if "user_id" not in session:
         return redirect("/login")
 
-    user = User.query.get(session["user_id"])
+    from eh_app.models.user import User
     from eh_app.models.appointment import Appointment
+
+    user = User.query.get(session["user_id"])
 
     if user.role == "doctor":
         appointments = Appointment.query.filter_by(doctor_id=user.id).all()
     elif user.role == "paciente":
         appointments = Appointment.query.filter_by(patient_id=user.id).all()
-    else:
+    else:  # admin
         appointments = Appointment.query.all()
 
+    # Desencriptar pacientes y doctores para cada cita
     for appt in appointments:
         try:
-            if appt.patient: appt.patient.decrypt_fields()
-            if appt.doctor: appt.doctor.decrypt_fields()
-        except: pass
+            if appt.patient:
+                appt.patient.decrypt_fields()
+            if appt.doctor:
+                appt.doctor.decrypt_fields()
+        except Exception as e:
+            print("[ERROR] Fallo al desencriptar:", e)
 
-    return render_template("schedule.html", user=user, appointments=appointments)
+    if user.role == "paciente":
+        return render_template("schedule_patient.html", user=user, appointments=appointments)
+    
+    return render_template("schedule_admin_doctor.html", user=user, appointments=appointments)
 
 from eh_app.models.historia_clinica import HistoriaClinica
 from datetime import datetime
